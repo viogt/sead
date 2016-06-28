@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<HEAD>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>⚑ MySQL Node JS</title>
+<style type="text/css">
+
+  body { font:normal 10pt Arial; }
+  .TblAlt { font:normal 11pt Calibri,Arial; color:#448; border-collapse:collapse; cursor:default; }
+  .TblAlt tr:nth-of-type(odd) { background-color: rgba(255,255,255,.5); }
+  .TblAlt tr:nth-of-type(even) { background-color: rgba(220,220,240,.5); }
+  .TblAlt tr td { padding: 6px 2px 2px 2px; vertical-align:top; }
+  .TblAlt tbody tr:hover { background-color: #88c; color: white; }
+  .TblAlt tr th {
+  	background-color: rgba(40,40,120,.5); color:white; white-space: nowrap;
+  	padding:6px 4px 6px 4px; font:bold 11pt Calibri,Arial;
+  }
+    .idClass { border-bottom: 1px solid lightgrey; }
+</style>
+
+<SCRIPT type="text/javascript">
+    var SRV = {
+
+        res: null, found: false,
+
+        send: function (json) {
+            try {
+                var msg = JSON.stringify(json);
+                if (msg.length > 200) { METH = 'POST'; URL = '/db/'; }
+                else { METH = 'GET'; URL = '/db/' + encodeURIComponent(msg); msg = null; }
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open(METH, URL, false);
+                xmlhttp.send(msg);
+                this.res = decodeURIComponent(xmlhttp.responseText);
+                if (this.res.charAt(0) == '0') { alert(this.res.substr(1)); return false; }
+                this.found = true;
+                if (this.res == 'NOT') this.found = false;
+                else this.res = JSON.parse(this.res);
+                return true;
+            } catch (e) { alert('Error!\n' + e.message); return false; }
+        },
+
+        exists: function (whatID) {
+            if (!this.send({ sql: "SELECT id FROM user WHERE id=" + whatID + " LIMIT 1" })) return false;
+            return this.found;
+        }
+    }
+    var UTIL = {
+        isNum: function (x) { return !isNaN(parseFloat(x)) && isFinite(x); },
+        isDate: function (d) { return !isNaN(Date.parse(d)); },
+        FrmNumber: function (a) {
+            var c, i; for (i = a.length - 1, c = 0; i > 0; i--, c++) if (c == 2) a = a.substr(c = 0, i) + ',' + a.substr(i--); return a;
+        },
+        FormatNumber: function (a, dec) {
+            var v, x = parseFloat(a.toString().replace(/,/g, '')).toFixed(dec).toString();
+            if (x == 'NaN') return '0.00'; v = x.split('.');
+            return ((v[0].substr(0, 1) == '-') ? (v[0].substr(0, 1) + this.FrmNumber(v[0].substr(1))) : this.FrmNumber(v[0])) + (dec > 0 ? ('.' + v[1]) : '');
+        },
+        dateTime: function(d) {
+            return d.substr(8, 2) + '.' + d.substr(5, 2) + '.' + d.substr(0, 4) + ' ' + d.substr(11, 5);
+        },
+        sqlDate: function(d) {
+          var n = d.toISOString(); return n.substr(0,10) + ' ' + n.substr(11,8);
+        },
+        
+        makeTable: function (rows, cnt) { //MAKE TABLE FROM JSON ROWS -> DIV ID
+            var tb = document.createElement('TABLE'),
+              bd = document.createElement('TBODY'),
+              hd = document.createElement('THEAD');
+            tb.className = 'TblAlt';
+
+            var H = rows[0], R = document.createElement('TR');
+            for (var h in H) {
+                var x = document.createElement('TH');
+                x.innerText = h;
+                R.appendChild(x)
+            }
+            hd.appendChild(R)
+
+            for (var r in rows) {
+                R = document.createElement('TR'); H = rows[r];
+                for (var h in H) {
+                    var x = document.createElement('TD');
+                    var v = H[h];
+                    if (this.isNum(H[h])) { x.style.textAlign = 'right'; if (h != 'id') v = this.FormatNumber(v / 100, 2); }
+                    else if (this.isDate(H[h])) v = this.dateTime(H[h]);
+                    x.innerText = v;
+                    x.addEventListener('click',this.clickHand);
+                    R.appendChild(x);
+                }
+                bd.appendChild(R);
+            }
+
+            tb.appendChild(hd); tb.appendChild(bd);
+            R = document.getElementById(cnt); if (R.hasChildNodes()) R.removeChild(R.firstChild); R.appendChild(tb);
+        },
+        
+        clickHand: function() { show_one(this.parentElement.cells[0].innerText); return; },
+
+        Repl: function() {
+          var Arr = arguments, F = Arr[0], cnt = 1;
+          if(Arr[1] instanceof Array) { Arr = Arr[1]; cnt = 0; }
+          return F.replace(/\?/g, function(x){ return Arr[cnt]?Arr[cnt++]:''; });
+        }
+
+    }
+
+    function id(x) { return document.getElementById(x); }
+    function say(x) { id('out').innerText = x; }
+    function show_sql() {
+        var sqlStr = id('sqlArea').value.trim(), sqlSend = { sql: sqlStr };
+        if (sqlStr.indexOf('?') > -1) {
+            var j = JSON.parse('{' + id('txtArea').value + '}');
+            sqlSend.values = j.values;
+        }
+        if (!SRV.send(sqlSend)) return;
+        if (sqlStr.substr(0, 6).toUpperCase() == 'SELECT') UTIL.makeTable(SRV.res, 'out');
+        else say(JSON.stringify(SRV.res));
+    }
+    function listTable() {
+        if (!SRV.send({ sql: "SELECT * FROM user" })) return;
+        if(SRV.found) UTIL.makeTable(SRV.res, 'out');
+    }
+    function show_one(rx) {
+        if (!SRV.send({ sql: "SELECT * FROM user WHERE id=" + rx + " LIMIT 1" })) return;
+        if (!SRV.found) { say('Not found!'); return; }
+        var rs = SRV.res[0], t = '<TABLE cellPadding="6" cellSpacing="0" border="0" style="border:1px solid #ccccff;font:normal 10pt Arial;">';
+
+        for (var j in rs) t += '<TR><TD bgColor="lightgrey">' + j + '</TD><TD class="idClass"><span contentEditable>' + rs[j] + '</span></TD></TR>';
+        t += '</TABLE><BR>';
+        t += '<INPUT type="button" value="Update" onclick="chRow(this,1)"/> ';
+        t += '<INPUT type="button" value="Insert" onclick="chRow(this,2)"/> ';
+        t += '<INPUT type="button" value="Delete" onclick="chRow(this,0)"/>';
+        id('secOut').innerHTML = t;
+    }
+    
+    function chRow(ob, fl) {
+      var fs = {}, rows = ob.parentElement.firstChild.rows;
+      var sqlStr = (fl==2?'INSERT INTO user SET ?':(fl?'UPDATE user SET ?':'DELETE FROM user'));
+      if(fl<2) sqlStr += ' WHERE id=' + rows[0].cells[1].innerText;
+      var SQL = { sql: sqlStr };
+      if(fl) {
+        for(var i=1; i<rows.length; i++) {
+          var vl = rows[i].cells[1].firstChild.innerText;
+          if(UTIL.isNum(vl)) vl = vl*1;
+          else if(UTIL.isDate(vl)) vl = vl.substr(0,10) + ' ' + vl.substr(11,8);
+          fs[rows[i].cells[0].innerText] = vl;
+        }
+        SQL.values = fs;
+      }
+      SRV.send(SQL);
+      listTable();
+    }
+
+    function ifExists(ob) {
+      ob.value = SRV.exists(parseInt(id("rid").value)) ? 'EXISTS!' : 'DOES NOT EXIST!';
+      setTimeout(function(){ ob.value = ob.getAttribute('default'); }, 1000);
+    }
+
+    var CONFIG = {
+      
+      init: function(to) {
+        try {
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.open('GET', 'json/mysql_conf.json', false);
+          xmlhttp.send(null);
+          var j = JSON.parse(xmlhttp.responseText);
+
+          for(var t in j.tables) {
+            if(SRV.send({ sql: "DROP TABLE IF EXISTS " + j.tables[t].name})) id(to).innerText = 'Table ' +  j.tables[t].name + ' deleted\n';
+            else { id(to).innerText = 'Cannot delete table ' +  j.tables[t].name + '. Aboted\n'; return; }
+
+            var cr = this.setSQLtables(j.tables[t]);
+            if(SRV.send({ sql: cr })) id(to).innerText += 'Table ' +  j.tables[t].name + ' created\n';
+            else { id(to).innerText += 'Cannot create table ' +  j.tables[t].name + '. Aboted\n'; return; }
+
+            if( j.tables[t].autofill ) if(!this.fillSample( this.getINSERTstmt(j.tables[t]), this.getRandomTable(j, t), to)) return;
+            if (!SRV.send({ sql: "SELECT * FROM " + j.tables[t].name})) return;
+
+            id('out').innerText = '';
+            UTIL.makeTable(SRV.res, to);
+          }
+        } catch(e) { alert(e.message); }
+      },
+      
+      setSQLtables: function(j) {
+        var f = ['id INT(11) UNSIGNED AUTO_INCREMENT'], fs = j.fields, res = 'CREATE TABLE IF NOT EXISTS '+ j.name +' (';
+        for(var i in fs) f.push(fs[i].name + ' ' + fs[i].sql_type);
+        f.push('PRIMARY KEY (id)');
+        res += f.join(', ') + ')';
+        return res;
+      },
+      
+      getINSERTstmt: function(j) {
+        return 'INSERT INTO ' + j.name + ' SET ?';
+        /*var fs = j.fields, pFs = [], f = [];
+        for(var i in fs) { pFs.push(fs[i].name); f.push('?'); }
+        res = 'INSERT INTO '+ j.name +' ('+ pFs.join(',') +') VALUES (' + f.join(',') + ')';
+        return res;*/
+      },
+      
+      getRandomTable: function (j, tbl_num) {
+        var fs = j.tables[tbl_num].fields, rows = j.tables[tbl_num].rows, ns = j.sample_names, nsL = ns.length, J = [];
+
+        for (var r = 0; r < rows; r++) {
+          oR = {};
+          for(var c in fs) {
+            if(fs[c].name == 'fullname') oR.fullname = oR.forename + ' ' + oR.name;
+            else if(fs[c].type == 'text') oR[fs[c].name] = ns[Math.floor(Math.random() * nsL)];
+            else if(fs[c].type == 'currency') oR[fs[c].name] = j.min_currency + Math.ceil(Math.random() * 1000000);
+            else if(fs[c].type == 'date') {
+              var d = new Date();
+              d.setDate(d.getDate() + 500 - Math.ceil(Math.random() * 1000));
+              oR[fs[c].name] = UTIL.sqlDate(d);
+            }
+          }
+          J.push(oR);
+        }
+        return J;
+      },
+      
+      fillSample: function( insStmt, rows, to) {
+        for(var r in rows) {
+          //var fs = []; for(var c in rows[r]) fs.push(rows[r][c]);
+          var fs = rows[r];
+          if (SRV.send({ sql: insStmt, values: fs })) id(to).innerText += 'INSERTED: ' +  JSON.stringify(fs) + '\n';
+          else { id(to).innerText += 'Failure to insert ' +  JSON.stringify(fs) + '. Aboted\n'; return false; }
+          //if (SRV.send({ sql: insStmt, values: fs })) id(to).innerText += 'Values ' +  fs.join(', ') + ' inserted\n';
+          //else { id(to).innerText += 'Failure to insert ' +  fs.join(', ') + '. Aboted\n'; return false; }
+        }
+        return true;
+      }
+    }
+
+</SCRIPT>
+
+</HEAD>
+<BODY onLoad="listTable()">
+
+  ID: <INPUT type='text' id='rid' style='width:40px;text-align:right;padding-right:6px' value='1'/>
+  <INPUT type='button' onClick='show_one(document.getElementById("rid").value)' value='Get one'/>
+  <INPUT type='button' onClick='ifExists(this)' default='Whether exists?' value='Whether exists?'/><br/>
+  
+  <TEXTAREA id='sqlArea' cols='60' rows='2' style='background-color:#ccccff;padding:6px'>
+SELECT * FROM user WHERE id>5
+  </TEXTAREA><BR/>
+  <INPUT type='button' onClick='show_sql()' value='Execute SQL query'/>
+  <INPUT type='button' onClick='listTable()' value='List All'/>
+  <INPUT type='button' onClick='CONFIG.init("out")' value='Re-Config'/><br>
+  <table><TR>
+  <td style="vertical-align: text-top"><DIV id='out' style="font:normal 10pt Courier;color: darkblue"></DIV></td>
+  <td style="vertical-align: text-top"><DIV id='secOut'></DIV></td>
+  </tr></table>
+</BODY>
+</HTML>

@@ -1,0 +1,18 @@
+{
+  "sample_names": ["Ernst", "Friedrich", "Hans", "Heinrich", "Hermann", "Karl", "Otto", "Paul", "Walter", "Wilhelm", "Anna", "Bertha", "Elisabeth", "Emma", "Frieda", "Gertrud", "Margarethe", "Martha", "Dieter", "Günter", "Hans", "Horst", "Jürgen", "Klaus", "Manfred", "Uwe", "Wolfgang"],
+  "min_currency": 100000,
+  "tables": [
+    {
+      "name": "user",
+      "fields": [
+        { "name": "name",     "type": "text",     "sql_type": "VARCHAR(12)" },
+        { "name": "forename", "type": "text",     "sql_type": "VARCHAR(12)" },
+        { "name": "salary",   "type": "currency", "sql_type": "DECIMAL(18,2)" },
+        { "name": "fullname", "type": "text",     "sql_type": "VARCHAR(24)" },
+        { "name": "date",     "type": "date",     "sql_type": "DATETIME" }
+      ],
+      "autofill": true,
+      "rows": 10
+    }
+  ]
+}
