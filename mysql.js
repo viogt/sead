@@ -50,6 +50,7 @@ function returnJSON(fl, resp){
 }
 
 function Query(s, res) {
+  res.end("0Data base = " + s); return;
   try {
 
       var mysql = require("mysql");
