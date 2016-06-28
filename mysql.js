@@ -25,6 +25,7 @@ http.createServer(function (req, res) {
 console.log('> MySQL app is running at port ' + port);
 
 function returnFile(fn, res) {
+		res.writeHead(200, {'Content-Type': 'text/html' });
     var file = fs.createReadStream(fn);
     file.on('error', function(e){ res.end('0Error reading file ' + fn) });
     file.pipe(res);
