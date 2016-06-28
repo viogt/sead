@@ -10,16 +10,16 @@ http.createServer(function (req, res) {
   if(req.method == 'GET') {
       if(req.url == '/') { returnFile('./mysql.html', res); return; }
       if(req.url == '/favicon.ico') return;
-      if(req.url.substr(0,4) == '/db/') { Query(decodeURIComponent(req.url.substr(4)), res); return; }
-      if(req.url.substr(0,6) == '/json/') returnJSON('./' + req.url.substr(6),res);
+      //if(req.url.substr(0,4) == '/db/') { Query(decodeURIComponent(req.url.substr(4)), res); return; }
+      //if(req.url.substr(0,6) == '/json/') returnJSON('./' + req.url.substr(6),res);
       return;
   }
-  else {
+/*  else {
     body = '';
   	req.on('data', function (chunk) { body += chunk; });
   	req.on('end', function () { Query(body, res); });
   	return;
-  }
+  }*/
 
 }).listen(port, ipadd);
 console.log('> MySQL app is running at port ' + port);
@@ -49,6 +49,7 @@ function returnJSON(fl, resp){
   });
 }
 
+/*
 function Query(s, res) {
   res.end("0Data base = " + s); return;
   try {
@@ -84,3 +85,4 @@ function Query(s, res) {
 }
 
 function kill(c) { c.end(function(err) { console.log(err?err:'Disconnected.'); }); }
+*/
