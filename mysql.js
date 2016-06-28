@@ -21,7 +21,7 @@ http.createServer(function (req, res) {
   	return;
   }
 
-}).listen(port);
+}).listen(port, ipadd);
 console.log('> MySQL app is running at port ' + port);
 
 function returnFile(fn, res) {
@@ -44,11 +44,13 @@ function Query(s, res) {
   try {
 
       var mysql = require("mysql");
-      var con = mysql.createConnection({ host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
-      //process.env.OPENSHIFT_MYSQL_DB_HOST
-      //process.env.OPENSHIFT_MYSQL_DB_PORT
-      //process.env.OPENSHIFT_MYSQL_DB_USERNAME
-      //process.env.OPENSHIFT_MYSQL_DB_PASSWORD
+      var con = mysql.createConnection({  //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
+      host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+      port: process.env.OPENSHIFT_MYSQL_DB_PORT,
+      user: process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+      password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+      database: "newDB"
+      });
       con.connect(function(err) {
 
           if(err){ console.log('0Error connecting to Db'); return; }
