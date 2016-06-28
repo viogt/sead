@@ -7,8 +7,6 @@ var http	= require('http'),
 
 http.createServer(function (req, res) {
 
-res.end("Response from server: " + req.method + ' url: ' + req.url);
-
   if(req.method == 'GET') {
       if(req.url == '/') { returnFile('./mysql.html', res); return; }
       if(req.url == '/favicon.ico') return;
