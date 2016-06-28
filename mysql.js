@@ -8,10 +8,10 @@ var http	= require('http'),
 http.createServer(function (req, res) {
 
   if(req.method == 'GET') {
-      if(req.url == '/') { returnFile('mysql.html', res); return; }
+      if(req.url == '/') { returnFile('./mysql.html', res); return; }
       if(req.url == '/favicon.ico') return;
       if(req.url.substr(0,4) == '/db/') { Query(decodeURIComponent(req.url.substr(4)), res); return; }
-      if(req.url.substr(0,6) == '/json/') returnJSON(req.url.substr(6),res);
+      if(req.url.substr(0,6) == '/json/') returnJSON('./' + req.url.substr(6),res);
       return;
   }
   else {
@@ -24,12 +24,20 @@ http.createServer(function (req, res) {
 }).listen(port, ipadd);
 console.log('> MySQL app is running at port ' + port);
 
-function returnFile(fn, res) {
+function returnFile(fl, resp){
+    fs.readFile(fl, function (err,data) {
+      if (err) { resp.end(err); return; }
+      resp.writeHead(200, {'Content-Type': 'text/html' });
+      resp.end(data);
+    });
+}
+
+/*function returnFile(fn, res) {
 		res.writeHead(200, {'Content-Type': 'text/html' });
     var file = fs.createReadStream(fn);
     file.on('error', function(e){ res.end('0Error reading file ' + fn) });
     file.pipe(res);
-}
+}*/
 
 function returnJSON(fl, resp){
 	fs.readFile(fl, function (err,data) {
