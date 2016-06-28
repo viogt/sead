@@ -51,9 +51,8 @@ function returnJSON(fl, resp){
 
 
 function Query(s, res) {
-  res.end("0Data base = " + s); return;
-}
-/*  try {
+
+  try {
 
       var mysql = require("mysql");
       var con = mysql.createConnection({  //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
@@ -61,7 +60,7 @@ function Query(s, res) {
       port: process.env.OPENSHIFT_MYSQL_DB_PORT,
       user: process.env.OPENSHIFT_MYSQL_DB_USERNAME,
       password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
-      database: "newDB"
+      database: "the"
       });
       con.connect(function(err) {
 
@@ -86,4 +85,3 @@ function Query(s, res) {
 }
 
 function kill(c) { c.end(function(err) { console.log(err?err:'Disconnected.'); }); }
-*/
