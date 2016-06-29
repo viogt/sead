@@ -2,9 +2,13 @@ var http	= require('http'),
     fs		= require('fs'),
     ipadd	= process.env.OPENSHIFT_NODEJS_IP,
     port	= process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    db_host = process.env.OPENSHIFT_MYSQL_DB_HOST,
-    db_port = process.env.OPENSHIFT_MYSQL_DB_PORT,
-
+    conStr = { //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
+          host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+          port: process.env.OPENSHIFT_MYSQL_DB_PORT,
+          user: "adminAzmCBaX", //process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+          password: "m5_Hhlmw3nml", //process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+          database: "the"
+    },
     body;
 
 
@@ -58,13 +62,7 @@ function Query(s, res) {
   try {
 
       var mysql = require("mysql");
-      var con = mysql.createConnection({  //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
-          host: db_host, //process.env.OPENSHIFT_MYSQL_DB_HOST,
-          port: db_port, //process.env.OPENSHIFT_MYSQL_DB_PORT,
-          user: "adminAzmCBaX", //process.env.OPENSHIFT_MYSQL_DB_USERNAME,
-          password: "m5_Hhlmw3nml", //process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
-          database: "the"
-      });
+      var con = mysql.createConnection(conStr);
       con.connect(function(err) {
 
           if(err){ console.log('0Error connecting to Db'); return; }
