@@ -2,7 +2,14 @@ var http	= require('http'),
     fs		= require('fs'),
     ipadd	= process.env.OPENSHIFT_NODEJS_IP,
     port	= process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    con = null, body;
+    conStr = { //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
+          host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+          port: process.env.OPENSHIFT_MYSQL_DB_PORT,
+          user: "adminAzmCBaX", //process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+          password: "m5_Hhlmw3nml", //process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+          database: "the"
+    },
+    body;
 
 
 http.createServer(function (req, res) {
@@ -51,9 +58,18 @@ function returnJSON(fl, resp){
 
 
 function Query(s, res) {
+
   try {
-          if(!con && !getCon()) return;
+
+      var mysql = require("mysql");
+      var con = mysql.createConnection(conStr);
+      con.connect(function(err) {
+
+          if(err){ console.log('0Error connecting to Db'); return; }
+          //console.log('Connected.');
           var j = JSON.parse(s);
+          //console.log('SQL: ' + j.sql + '\n' + (j.values?j.values:[]).join(','));
+  
           con.query(j.sql, j.values?j.values:[], function( err, rows ){
 
               if(err) { res.end('0Error executing exec. query: ' + j.sql + '\n' + err); kill(con); return; }
@@ -65,23 +81,8 @@ function Query(s, res) {
               res.end(R?R.toString():'NOT');
               kill(con); return;
           });
-  } catch(e) { res.end('0Internal error, ' + e.message); return; }
-}
-
-function getCon() {
-      var conStr = { //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
-            host: process.env.OPENSHIFT_MYSQL_DB_HOST,
-            port: process.env.OPENSHIFT_MYSQL_DB_PORT,
-            user: "adminAzmCBaX", //process.env.OPENSHIFT_MYSQL_DB_USERNAME,
-            password: "m5_Hhlmw3nml", //process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
-            database: "the"
-      };
-      var mysql = require("mysql");
-      con = mysql.createConnection(conStr);
-      con.connect(function(err) {
-          if(err){ console.log('0Error connecting to Db'); con = null; return false; }
-          return true;
       });
+  } catch(e) { res.end('0Internal error, ' + e.message); return; }
 }
 
 function kill(c) { c.end(function(err) { console.log(err?err:'Disconnected.'); }); }
