@@ -51,7 +51,7 @@ function returnJSON(fl, resp){
 
 function Query(s, res) {
   try {
-          if(!con && !getCon()) return;
+          if(!con) { getCon(s, res); return; }
           var j = JSON.parse(s);
           con.query(j.sql, j.values?j.values:[], function( err, rows ){
 
@@ -78,9 +78,8 @@ function getCon(s, res) {
       var mysql = require("mysql");
       con = mysql.createConnection(conStr);
       con.connect(function(err) {
-          if(err){ console.log('0Error connecting to Db'); con = null; return false; }
+          if(err){ console.log('0Error connecting to Db'); con = null; return; }
           Query(s, res);
-          return true;
       });
 }
 
