@@ -51,7 +51,10 @@ function returnJSON(fl, resp){
 
 function Query(s, res) {
   try {
-          if(!con) { getCon(s, res); return; }
+      if(!con) getCon();
+      con.connect(function(err) {
+          if(err){ console.log('0Error connecting to Db'); con = null; return; }
+
           var j = JSON.parse(s);
           con.query(j.sql, j.values?j.values:[], function( err, rows ){
 
@@ -64,10 +67,11 @@ function Query(s, res) {
               res.end(R?R.toString():'NOT');
               kill(con); return;
           });
+      });
   } catch(e) { res.end('0Internal error, ' + e.message); return; }
 }
 
-function getCon(s, res) {
+function getCon() {
       var conStr = { //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
             host: process.env.OPENSHIFT_MYSQL_DB_HOST,
             port: process.env.OPENSHIFT_MYSQL_DB_PORT,
@@ -77,10 +81,6 @@ function getCon(s, res) {
       };
       var mysql = require("mysql");
       con = mysql.createConnection(conStr);
-      con.connect(function(err) {
-          if(err){ console.log('0Error connecting to Db'); con = null; return; }
-          Query(s, res);
-      });
 }
 
 function kill(c) { c.end(function(err) { console.log(err?err:'Disconnected.'); }); }
