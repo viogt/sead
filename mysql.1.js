@@ -49,6 +49,7 @@ function returnJSON(fl, resp){
   });
 }
 
+
 function Query(s, res) {
   try {
           if(!con && !getCon()) return;
@@ -67,7 +68,7 @@ function Query(s, res) {
   } catch(e) { res.end('0Internal error, ' + e.message); return; }
 }
 
-function getCon(s, res) {
+function getCon() {
       var conStr = { //host: "localhost", user: "root", password: "mysqllocal", database: "newDB"});
             host: process.env.OPENSHIFT_MYSQL_DB_HOST,
             port: process.env.OPENSHIFT_MYSQL_DB_PORT,
@@ -79,7 +80,6 @@ function getCon(s, res) {
       con = mysql.createConnection(conStr);
       con.connect(function(err) {
           if(err){ console.log('0Error connecting to Db'); con = null; return false; }
-          Query(s, res);
           return true;
       });
 }
