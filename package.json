@@ -32,6 +32,10 @@
   "devDependencies": {},
   "bundleDependencies": [],
 
+  "scripts": {
+  "start": "node mysql.js"
+  },
+
   "private": true,
   "main": "mysql.js"
 }
